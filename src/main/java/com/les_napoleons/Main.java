@@ -1,8 +1,12 @@
 package com.les_napoleons;
 
+import twitter4j.TweetEntity;
+
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println("Hello world");
+
+        StatsUtils stats = new StatsUtils();
+        stats.getTwitterFollowers();
     }
 }
