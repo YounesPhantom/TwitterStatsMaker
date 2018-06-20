@@ -6,66 +6,67 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 public class StatsUtils {
+    private static final String API_KEY = "1408717b9334938b2118f4e62448025d";
+    private TwitterFactory factory;
+    private Twitter twitter;
+    private final String API_URL = "http://api.twittercounter.com/";
+
+    public StatsUtils() {
+        this.factory = new TwitterFactory();
+        this.twitter = factory.getInstance();
+        this.twitter.setOAuthConsumer("6WcdrVzkqTuDvEZMQeLYNnK48", "aBt2toj0sXiARBht5wh65ddeJ2ndrrSw8Pl87zUsl5iFac2Y25");
+        AccessToken accessToken = new AccessToken("2467520784-CHESBQLEo2rKXm1d2K2wdPrPs1XeXhAMMJK5Gps", "kFHXnwmjYIAyylI4qKt1m8ke2iGOKAZW99UKIWtFe7CVi");
+        this.twitter.setOAuthAccessToken(accessToken);
+    }
+
+    public String getAPI() throws IOException {
+        String request = API_URL + "?apikey=" + API_KEY + "&twitter_id=15160529#_ga=2.156675132.646665159.1529437898-627797711.1529437898";
+        URL url = new URL(request);
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("GET");
+        int status = con.getResponseCode();
+        System.out.println(status);
+        if (status != 200 ) {
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuffer content = new StringBuffer();
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+            }
+            in.close();
+            con.disconnect();
+            return content.toString();
+        } else {
+            return "An error has occured";
+        }
+
+    }
+
 
     public void getTwitterFollowers() {
-
-        TwitterFactory factory = new TwitterFactory();
-        Twitter twitter = factory.getInstance();
-        twitter.setOAuthConsumer("6WcdrVzkqTuDvEZMQeLYNnK48", "aBt2toj0sXiARBht5wh65ddeJ2ndrrSw8Pl87zUsl5iFac2Y25");
-        AccessToken accessToken = new AccessToken("2467520784-CHESBQLEo2rKXm1d2K2wdPrPs1XeXhAMMJK5Gps", "kFHXnwmjYIAyylI4qKt1m8ke2iGOKAZW99UKIWtFe7CVi");
-        twitter.setOAuthAccessToken(accessToken);
-        //TODO https://twittercounter.com/pages/api
-        //TODO Request API key data in JSON, parse JSON etc
-        String twitterScreenName;
         try {
             List<Long> followerList = new ArrayList<Long>();
             long cursor = -1L;
             IDs ids;
             do {
-                ids = twitter.getFollowersIDs(cursor);
+                ids = this.twitter.getFollowersIDs(cursor);
                 for (long userID : ids.getIDs()) {
                     followerList.add(userID);
                 }
             } while ((cursor = ids.getNextCursor()) != 0);
             //getFollowersIds only returns 5k ids, so a cursor is needed to run through all the list
             System.out.println(followerList.size());
-
-            /*IDs followerIDs = twitter.getFollowersIDs(twitterScreenName, -1);
-            long[] ids = followerIDs.getIDs();
-            IDs id = twitter.getFriendsIDs(20000);
-
-            IDs test = twitter.getFollowersIDs(twitterScreenName,);
-            System.out.println(test.getIDs().length);
-
-            //System.out.println(twitter.showUser(ids[159]).getScreenName());
-            //System.out.println(twitter.showUser(ids[159]).getLocation());
-            //System.out.println(twitter);*/
-
-            /*for (long id : ids) {
-                twitter4j.User user = twitter.showUser(id);
-                //here I am trying to fetch the followers of each id
-                String userScreenName = user.getScreenName();
-                System.out.println("Name: " + user.getScreenName());
-                System.out.println("Location:" + user.getLocation());*/
-
-                /* This block gets followers of followers which is.. fine I guess?
-
-                IDs followerIDsOfFollowers = twitter.getFollowersIDs(user.getScreenName(), -1);
-                long[] fofIDs = followerIDsOfFollowers.getIDs();
-                for (long subId : fofIDs) {
-                    twitter4j.User user1 = twitter.showUser(subId);
-                    System.out.println("Follower Master:" + userScreenName + " Follower of Follower Name: " + user1.getScreenName());
-                    System.out.println("Location:" + user1.getLocation());
-
-                }*/
-            //}
-
-        } catch (TwitterException e) {
-            System.out.println(e.getMessage());
+        } catch (TwitterException ignored) {
         }
     }
 }
